@@ -459,6 +459,34 @@ impl FromIterator<(Square, Piece)> for Board {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Board {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        Encode::encode(&self.by_role, encoder)?;
+        Encode::encode(&self.by_color, encoder)?;
+        Encode::encode(&self.occupied, encoder)?;
+        Ok(())
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Board {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::Decode;
+        Ok(Self {
+            by_role: Decode::decode(decoder)?,
+            by_color: Decode::decode(decoder)?,
+            occupied: Decode::decode(decoder)?,
+        })
+    }
+}
+
 /// Iterator over the pieces of a [`Board`].
 #[derive(Debug, Clone)]
 pub struct Iter<'a> {

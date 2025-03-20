@@ -1030,6 +1030,24 @@ impl IntoIterator for Bitboard {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Bitboard {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        bincode::Encode::encode(&self.0, encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Bitboard {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        let val = bincode::Decode::decode(decoder)?;
+        Ok(Self(val))
+    }
+}
+
 /// Iterator over the squares of a [`Bitboard`].
 #[derive(Debug, Default, Clone)]
 pub struct IntoIter(Bitboard);

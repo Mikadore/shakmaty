@@ -169,6 +169,21 @@ impl fmt::Display for Color {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Color {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        bincode::Encode::encode(&self.is_white(), encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Color {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        let is_white: bool = bincode::Decode::decode(decoder)?;
+        Ok(if is_white { Self::White } else { Self::Black })
+    }
+}
+
 /// Error when parsing an invalid color name.
 #[derive(Clone, Debug)]
 pub struct ParseColorError;
@@ -410,5 +425,26 @@ impl<T> ops::IndexMut<Color> for ByColor<T> {
     #[inline]
     fn index_mut(&mut self, index: Color) -> &mut T {
         self.get_mut(index)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<T> bincode::Encode for ByColor<T> where T: bincode::Encode {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        Encode::encode(&self.white, encoder)?;
+        Encode::encode(&self.black, encoder)?;
+        Ok(())
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<T, Ctx> bincode::Decode<Ctx> for ByColor<T> where T: bincode::Decode<Ctx> {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::Decode;
+        Ok(Self {
+            white: Decode::decode(decoder)?,
+            black: Decode::decode(decoder)?, 
+        })
     }
 }

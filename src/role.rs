@@ -159,6 +159,32 @@ macro_rules! try_role_from_int_impl {
 
 try_role_from_int_impl! { u8 i8 u16 i16 u32 i32 u64 i64 u128 i128 usize isize }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Role {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        let val: u8 = (*self).into();
+        bincode::Encode::encode(&val, encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Role {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::error::{AllowedEnumVariants, DecodeError};
+        let val: u8 = bincode::Decode::decode(decoder)?;
+        val.try_into().map_err(|_| DecodeError::UnexpectedVariant {
+            type_name: "Role",
+            allowed: &AllowedEnumVariants::Range { min: 1, max: 6 },
+            found: val as u32,
+        })
+    }
+}
+
 /// Container with values for each [`Role`].
 #[derive(Copy, Clone, Default, Eq, PartialEq, Debug, Hash)]
 #[repr(C)]
@@ -353,5 +379,45 @@ impl<T> ops::IndexMut<Role> for ByRole<T> {
     #[inline]
     fn index_mut(&mut self, role: Role) -> &mut T {
         self.get_mut(role)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<T> bincode::Encode for ByRole<T>
+where
+    T: bincode::Encode,
+{
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        Encode::encode(&self.pawn, encoder)?;
+        Encode::encode(&self.knight, encoder)?;
+        Encode::encode(&self.bishop, encoder)?;
+        Encode::encode(&self.rook, encoder)?;
+        Encode::encode(&self.queen, encoder)?;
+        Encode::encode(&self.king, encoder)?;
+        Ok(())
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<T, Ctx> bincode::Decode<Ctx> for ByRole<T>
+where
+    T: bincode::Decode<Ctx>,
+{
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::Decode;
+        Ok(Self {
+            pawn: Decode::decode(decoder)?,
+            knight: Decode::decode(decoder)?,
+            bishop: Decode::decode(decoder)?,
+            rook: Decode::decode(decoder)?,
+            queen: Decode::decode(decoder)?,
+            king: Decode::decode(decoder)?,
+        })
     }
 }
