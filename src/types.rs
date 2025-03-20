@@ -230,6 +230,87 @@ impl Display for Move {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Move {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        match self {
+            Self::Normal {
+                role,
+                from,
+                capture,
+                to,
+                promotion,
+            } => {
+                Encode::encode(&0u8, encoder)?;
+                Encode::encode(role, encoder)?;
+                Encode::encode(from, encoder)?;
+                Encode::encode(capture, encoder)?;
+                Encode::encode(to, encoder)?;
+                Encode::encode(promotion, encoder)?;
+            }
+            Self::EnPassant { from, to } => {
+                Encode::encode(&1u8, encoder)?;
+                Encode::encode(from, encoder)?;
+                Encode::encode(to, encoder)?;
+            }
+            Self::Castle { king, rook } => {
+                Encode::encode(&2u8, encoder)?;
+                Encode::encode(&king, encoder)?;
+                Encode::encode(&rook, encoder)?;
+            }
+            Self::Put { role, to } => {
+                Encode::encode(&3u8, encoder)?;
+                Encode::encode(&role, encoder)?;
+                Encode::encode(&to, encoder)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Move {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::{
+            error::{AllowedEnumVariants, DecodeError},
+            Decode,
+        };
+        let tag: u8 = Decode::decode(decoder)?;
+        match tag {
+            0 => Ok(Self::Normal {
+                role: Decode::decode(decoder)?,
+                from: Decode::decode(decoder)?,
+                capture: Decode::decode(decoder)?,
+                to: Decode::decode(decoder)?,
+                promotion: Decode::decode(decoder)?,
+            }),
+            1 => Ok(Self::EnPassant {
+                from: Decode::decode(decoder)?,
+                to: Decode::decode(decoder)?,
+            }),
+            2 => Ok(Self::Castle {
+                king: Decode::decode(decoder)?,
+                rook: Decode::decode(decoder)?,
+            }),
+            3 => Ok(Self::Put {
+                role: Decode::decode(decoder)?,
+                to: Decode::decode(decoder)?,
+            }),
+            _ => Err(DecodeError::UnexpectedVariant {
+                type_name: "Move",
+                allowed: &AllowedEnumVariants::Range { min: 0, max: 3 },
+                found: tag as u32,
+            }),
+        }
+    }
+}
+
 /// `Standard` or `Chess960`.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum CastlingMode {
@@ -279,6 +360,39 @@ impl CastlingMode {
 
     pub const fn is_chess960(self) -> bool {
         matches!(self, CastlingMode::Chess960)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl bincode::Encode for CastlingMode {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        match self {
+            Self::Standard => Encode::encode(&0u8, encoder),
+            Self::Chess960 => Encode::encode(&1u8, encoder),
+        }
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for CastlingMode {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::error::{AllowedEnumVariants, DecodeError};
+        let tag: u8 = bincode::Decode::decode(decoder)?;
+        match tag {
+            0 => Ok(Self::Standard),
+            1 => Ok(Self::Chess960),
+            _ => Err(DecodeError::UnexpectedVariant {
+                type_name: "CastlingMode",
+                allowed: &AllowedEnumVariants::Range { min: 0, max: 1 },
+                found: tag as u32,
+            }),
+        }
     }
 }
 

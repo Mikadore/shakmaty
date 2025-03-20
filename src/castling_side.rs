@@ -260,6 +260,26 @@ impl<T> ops::IndexMut<CastlingSide> for ByCastlingSide<T> {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl<T> bincode::Encode for ByCastlingSide<T> where T: bincode::Encode {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        Encode::encode(&self.king_side, encoder)?;
+        Encode::encode(&self.queen_side, encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<T, Ctx> bincode::Decode<Ctx> for ByCastlingSide<T> where T: bincode::Decode<Ctx> {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::Decode;
+        Ok(Self {
+            king_side: Decode::decode(decoder)?,
+            queen_side: Decode::decode(decoder)?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

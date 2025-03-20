@@ -681,6 +681,32 @@ impl fmt::Debug for Square {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Square {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        let val: u8 = (*self).into();
+        bincode::Encode::encode(&val, encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Square {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::error::{AllowedEnumVariants, DecodeError};
+        let val: u8 = bincode::Decode::decode(decoder)?;
+        val.try_into().map_err(|_| DecodeError::UnexpectedVariant {
+            type_name: "Square",
+            allowed: &AllowedEnumVariants::Range { min: 0, max: 63 },
+            found: val as u32,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

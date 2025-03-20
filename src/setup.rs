@@ -374,6 +374,30 @@ impl Castles {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Castles {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        Encode::encode(&self.mask, encoder)?;
+        Encode::encode(&self.rook, encoder)?;
+        Encode::encode(&self.path, encoder)?;
+        Encode::encode(&self.mode, encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Castles {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::Decode;
+        Ok(Self {
+            mask: Decode::decode(decoder)?,
+            rook: Decode::decode(decoder)?,
+            path: Decode::decode(decoder)?,
+            mode: Decode::decode(decoder)?,
+        })
+    }
+}
+
 /// En passant square on the third or sixth rank.
 #[derive(Debug, Copy, Clone)]
 pub(crate) struct EnPassant(pub Square);
@@ -424,5 +448,19 @@ impl EnPassant {
 
     pub fn pawn_pushed_to(self) -> Square {
         self.0.xor(Square::A2)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl bincode::Encode for EnPassant {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        bincode::Encode::encode(&self.0, encoder)
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for EnPassant {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        Ok(Self(bincode::Decode::decode(decoder)?))
     }
 }

@@ -1036,6 +1036,35 @@ impl Position for Chess {
     }
 }
 
+#[cfg(feature = "bincode")]
+impl bincode::Encode for Chess {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        use bincode::Encode;
+        Encode::encode(&self.board, encoder)?; 
+        Encode::encode(&self.turn, encoder)?; 
+        Encode::encode(&self.castles, encoder)?; 
+        Encode::encode(&self.ep_square, encoder)?; 
+        Encode::encode(&self.halfmoves, encoder)?; 
+        Encode::encode(&self.fullmoves, encoder)?;
+        Ok(())
+    }
+}
+
+#[cfg(feature = "bincode")]
+impl<Ctx> bincode::Decode<Ctx> for Chess {
+    fn decode<D: bincode::de::Decoder<Context = Ctx>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        use bincode::Decode;
+        Ok(Self {
+            board: Decode::decode(decoder)?,
+            turn: Decode::decode(decoder)?,
+            castles: Decode::decode(decoder)?,
+            ep_square: Decode::decode(decoder)?,
+            halfmoves: Decode::decode(decoder)?,
+            fullmoves: Decode::decode(decoder)?,
+        })
+    }
+}
+
 #[cfg(feature = "variant")]
 pub(crate) mod variant {
     use core::{cmp::min, ops::Not};
