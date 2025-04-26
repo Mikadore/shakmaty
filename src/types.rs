@@ -311,6 +311,9 @@ impl<Ctx> bincode::Decode<Ctx> for Move {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Move);
+
 /// `Standard` or `Chess960`.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum CastlingMode {
@@ -395,6 +398,10 @@ impl<Ctx> bincode::Decode<Ctx> for CastlingMode {
         }
     }
 }
+
+
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(CastlingMode);
 
 /// When to include the en passant square.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]

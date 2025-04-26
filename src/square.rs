@@ -707,6 +707,9 @@ impl<Ctx> bincode::Decode<Ctx> for Square {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Square);
+
 #[cfg(test)]
 mod tests {
     use super::*;

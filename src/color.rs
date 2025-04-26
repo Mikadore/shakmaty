@@ -184,6 +184,9 @@ impl<Ctx> bincode::Decode<Ctx> for Color {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Color);
+
 /// Error when parsing an invalid color name.
 #[derive(Clone, Debug)]
 pub struct ParseColorError;

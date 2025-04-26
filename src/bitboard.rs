@@ -1048,6 +1048,9 @@ impl<Ctx> bincode::Decode<Ctx> for Bitboard {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Bitboard);
+
 /// Iterator over the squares of a [`Bitboard`].
 #[derive(Debug, Default, Clone)]
 pub struct IntoIter(Bitboard);

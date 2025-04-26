@@ -398,6 +398,9 @@ impl<Ctx> bincode::Decode<Ctx> for Castles {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Castles);
+
 /// En passant square on the third or sixth rank.
 #[derive(Debug, Copy, Clone)]
 pub(crate) struct EnPassant(pub Square);
@@ -464,3 +467,6 @@ impl<Ctx> bincode::Decode<Ctx> for EnPassant {
         Ok(Self(bincode::Decode::decode(decoder)?))
     }
 }
+
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(EnPassant);

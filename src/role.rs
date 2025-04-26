@@ -185,6 +185,9 @@ impl<Ctx> bincode::Decode<Ctx> for Role {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Role);
+
 /// Container with values for each [`Role`].
 #[derive(Copy, Clone, Default, Eq, PartialEq, Debug, Hash)]
 #[repr(C)]

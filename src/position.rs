@@ -1065,6 +1065,9 @@ impl<Ctx> bincode::Decode<Ctx> for Chess {
     }
 }
 
+#[cfg(feature = "bincode")]
+bincode::impl_borrow_decode!(Chess);
+
 #[cfg(feature = "variant")]
 pub(crate) mod variant {
     use core::{cmp::min, ops::Not};
